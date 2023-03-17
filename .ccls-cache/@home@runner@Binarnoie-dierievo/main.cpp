@@ -59,7 +59,88 @@ public:
   }
 };
 
+
+class BinaryTree
+{
+
+private:
+  Node* m_root; 
+
+  public:
+  
+
+  BinaryTree() {m_root = nullptr;}
+
+//-----------Деструктор---------------//
+  ~BinaryTree()
+  {
+    DestroyTree(m_root);
+  }
+
+
+  void DestroyTree(Node *root)
+  {
+    if(root)
+      {
+        DestroyTree(root->GetLeft());
+        DestroyTree(root->GetRight());
+        delete root;
+      }
+  }
+//------------------------------------//
+
+
+//----------------Конструктор копирования-----------------//
+  BinaryTree(const BinaryTree& copy)
+  {
+    copyTree(copy.m_root);
+  }
+
+  void copyTree(Node *root)
+  {
+    ;
+  }
+
+//------------Добавление элемента ( перегрузка ) ------------------//
+  Node* addNode(Node *root , int key)
+  {
+    if(!root)
+      root = new Node(key);
+    else if ( rand() & 2)
+      root->SetLeft( addNode(root->GetLeft(),key) );
+    else
+      root->SetRight( addNode(root->GetRight(),key) );
+
+    return root;
+  }
+
+
+  Node* addNode(int key)
+  {
+    m_root=addNode(m_root ,key);
+    return m_root;
+  }
+//----------------------------------------------------------------//
+
+//------------Получение корня-------------------//
+  Node* getRoot()
+  {
+    return m_root;
+  }
+//----------------------------------------------//
+  
+};
+
+void destr(const int size)
+{
+  BinaryTree tree;
+  for(int i=0;i<size;i++)
+    tree.addNode(i);
+}
+
+
 int main()
 {
+  destr(100);
 return 0;
   }
