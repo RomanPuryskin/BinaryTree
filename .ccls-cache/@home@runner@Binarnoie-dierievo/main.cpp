@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <algorithm>
+#include <stdlib.h>
 
 class Node
 {
@@ -116,15 +118,30 @@ private:
 //----------------Конструктор копирования-----------------//
   BinaryTree(const BinaryTree& copy)
   {
-    copyTree(copy.m_root);
+    if((m_root = copy.m_root))
+      m_root = new Node (*copy.m_root);
+    else 
+      m_root = nullptr;
   }
 
-  void copyTree(Node *root)
+//-------------------Копирование поддерева------------------//
+  Node* copyTree(Node *root )
   {
-    ;
-  }
-//-------------------------------------------------------//
+    Node* root_copy;
+    if (root == nullptr) {
+        return nullptr;
+    }
+    root_copy = new Node(*root);
+    if(root->GetLeft() != NULL)
+      root_copy->SetLeft(copyTree(root->GetLeft()));
+    else root_copy->SetLeft(nullptr);
 
+    if(root->GetRight() != NULL)
+      root_copy->SetRight(copyTree(root->GetRight()));
+    else root_copy->SetRight(nullptr);
+    return root_copy;
+  }
+//---------------------------------------------------------//
 //------------------Проверка дерева на пустоту------------------//
 bool isEmpty(Node *root)
   {
@@ -163,18 +180,15 @@ bool isEmpty(Node *root)
   }
 //----------------------------------------------//
 
+
+//----------------Количество узлов дерева------------//
   int Count(Node *root)
   {
     if(root == NULL)
       return 0;
-    else
-    {
-      if(root->GetLeft()!=NULL)
-        return Count(root->GetLeft())+1;
-      if(root->GetRight()!=NULL)
-        return Count(root->GetRight())+1;
-    }
+    return Count(root->GetLeft()) + Count(root->GetRight()) + 1;
   }
+//---------------------------------------------------//
 
 //----------------------Вывод дерева горизонтально-----------------//
   void PrintTree(Node *root, int marginLeft, int Space) const
@@ -204,37 +218,126 @@ bool isEmpty(Node *root)
 //-------------------------------------------------------//
 
 //---------------Получение вектора ключей--------------//
-void getTreeKeys(Node *root) const
+std::vector<int> getTreeKeys()
+{
+  std::vector<int>treeKeys;
+  getTreeKeys(m_root,treeKeys);
+  return treeKeys;
+}
+
+void getTreeKeys(Node *root , std::vector<int> &treeKeys)
   {
-    std::vector<int> treeKeys;
     if(!root)
       return;
-    if(root)
-    {
-      getTreeKeys(root->GetLeft());
-      getTreeKeys(root->GetRight());
-      treeKeys.push_back(root->GetKey());
-    }
+    getTreeKeys(root->GetLeft(),treeKeys);
+    getTreeKeys(root->GetRight(),treeKeys);
+    treeKeys.push_back(root->GetKey());
 
-    for (auto& v : treeKeys){
-        std::cout << v << " ";
-    }
   }
 //-----------------------------------------------------//
-};
 
-
-int main()
+//-------------Получение минимального элемента------------//
+int searchMinKey()
 {
-  int pup;
-  BinaryTree tree;
-  for(int i=0;i<19;i++)
-    tree.addNode(i);
+  std::vector<int> treeKeys = getTreeKeys();
+  if(treeKeys.empty())
+    return -1;
+  auto minKey = std::min_element(treeKeys.begin(),treeKeys.end());
+  return *minKey;
+}
+//-----------------------------------------------------//
 
+//-----------Получение максимального элемента----------//
+int searchMaxKey()
+{
+  std::vector<int> treeKeys = getTreeKeys();
+  if(treeKeys.empty())
+    return -1;
+  auto maxKey = std::max_element(treeKeys.begin(),treeKeys.end());
+  return *maxKey;
+}
+//-----------------------------------------------------//
+
+
+//-------------------Получение высоты дерева-------------------//
+int height(Node *root)
+  {
+    if(root == NULL)
+      return 0;
+    return 1 + std::max( height(root->GetLeft()) , height(root->GetRight()) );
+  }
+//-------------------------------------------------------------//
+
+
+//-----------------Сумма всех ключей дерева--------------------//
+
+int sumKeys(Node *root)
+  {
+    if(root == NULL)
+      return 0;
+    sumKeys(root->GetLeft()); 
+    sumKeys(root->GetRight()); 
+    return sumKeys(root->GetLeft()) + sumKeys(root->GetRight()) + root->GetKey();
+  }
+//-------------------------------------------------------------//
+
+
+//------------Получение уровня вершины по ключу ( перегрузка )---------------//
+
+  Node* SearchKey(Node *root , int key)
+  {
+    if(!root || root->GetKey() == key)
+      return root;
+    Node *temp = SearchKey(root->GetLeft() , key);
+    if(!temp)
+      temp = SearchKey(root->GetRight(), key);
+    return temp;
+  }
+
+ int GetHeightKey(int key)
+  {
+    Node *temp = SearchKey(m_root, key);
+    if( temp == NULL)
+      return -1;
+    else
+      return (height(m_root) - height(temp)) + 1;
+  }
+//---------------------------------------------------------------------------//
+
+//-------------------Оператор присваивания-----------------//
+BinaryTree& operator = (const BinaryTree& other)
+  {
+    if (this == &other)
+      return *this;
+    DestroyTree(m_root);
+    if((other.m_root))
+      m_root = copyTree(other.m_root);
+    else 
+      m_root = nullptr;
+
+    return *this;
+  }
+//---------------------------------------------------------//
+};                                                                                    
+
+
+int main()  
+{
+  int pupmax , pupmin;
+  BinaryTree tree;
+  for(int i=10;i>2;i--)
+    tree.addNode(i);
+  
+  //BinaryTree clone;
+  //clone = tree;
+  //clone.PrintTree(clone.getRoot(), 2, 3);
   tree.PrintTree(tree.getRoot(),2 ,3);
  // pup = tree.Count(tree.getRoot());
-  //std::cout<<pup;
   //tree.PrintLeaves(tree.getRoot());
-
-return 0;
-  }
+  //pup=tree.Count(tree.getRoot());
+  //pup = tree.sumKeys(tree.getRoot());
+ // pupmin = tree.GetHeightKey(5);
+  //std::cout<<pupmin;
+  
+  return 0;
+}
