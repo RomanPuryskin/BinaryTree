@@ -318,6 +318,19 @@ BinaryTree& operator = (const BinaryTree& other)
     return *this;
   }
 //---------------------------------------------------------//
+
+//----------Проверка на сбалансированность----------//
+bool balancedTree(Node *root)
+  {
+    if(root == NULL)
+      return true;
+    int leftHeight = height(root->GetLeft());
+    int rightHeight = height(root->GetRight());
+    if( abs(leftHeight - rightHeight) <=1 && balancedTree(root->GetLeft()) && balancedTree(root->GetRight()))
+      return true;
+    return false;
+  }
+//--------------------------------------------------//
 };                                                                                    
 
 
